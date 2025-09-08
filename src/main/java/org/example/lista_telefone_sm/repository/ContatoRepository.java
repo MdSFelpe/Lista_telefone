@@ -1,9 +1,10 @@
-package repository;
+package org.example.lista_telefone_sm.repository;
 
-import model.Contato;
+import org.example.lista_telefone_sm.model.Contato;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,7 +20,7 @@ public interface ContatoRepository extends JpaRepository<Contato, Long> {
      * @param email O e-mail a ser verificado.
      * @return true se o e-mail já existir, false caso contrário.
      */
-    boolean existsByemail(String email);
+    boolean existsByEmail(String email);
 
 
     /**
@@ -29,9 +30,10 @@ public interface ContatoRepository extends JpaRepository<Contato, Long> {
      * @param email O e-mail do contato a ser buscado.
      * @return um Optional contendo o Contato se encontrado, ou um Optional vazio.
      */
-    Optional<Contato> findByemail(String email);
+    Optional<Contato> findByEmail(String email);
 
-    Optional<Contato> findById(Long id);
 
-    Optional<Contato> existsContatoByID(Long id);
+    List<Contato> findByNomeContainingIgnoreCaseOrEmailContainingIgnoreCase(String nome, String email);
+
+
 }

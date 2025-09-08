@@ -1,10 +1,12 @@
-package service;
+package org.example.lista_telefone_sm.service;
 
 
-import model.Contato;
+import org.example.lista_telefone_sm.model.Contato;
+import org.example.lista_telefone_sm.model.Endereco;
+import org.example.lista_telefone_sm.model.Telefone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import repository.ContatoRepository;
+import org.example.lista_telefone_sm.repository.ContatoRepository;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -20,55 +22,82 @@ public class ContatoService {
     // ContatoRepository e "injetá-la" aqui para ser usado.
 
 
+    //========================================CREATE PART============================================================
     //Criar um novo contato (CREATE)
-    public Contato createnewcontact(Contato contato)    {
+    public Contato criarcontato(Contato contato)    {
         //Passo 1: Sanitizar os dados
         sanitizarContato(contato);
 
         //Passo 2: Validar as regras de negócio
-        validarRegrasdeNegocio(contato);
+        validarRegrasDeNegocioParaCriacao(contato);
 
         //Passo 3 : Persistir no banco de dados
         return contatoRepository.save(contato);
     }
 
 
+    //========================================READ PART============================================================
     //Ler todos os contatos(READ)
-    public List<Contato> listall() {
+    public List<Contato> listarContatos() {
         return contatoRepository.findAll();
     }
 
 
     //Ler um contato especifico (READ)
-    public Contato Listuniq(Long id) {
+    public Contato buscarPorId(Long id) {
         return contatoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Contato não encontrado com id: " + id));
     }
 
+    public List<Contato> buscarPorTermo(String termo) {
+        // Se passa o mesmo termo para os dois parâmetros do metodo do repositório.
+        return contatoRepository.findByNomeContainingIgnoreCaseOrEmailContainingIgnoreCase(termo, termo);
+    }
 
+
+    //========================================UPDATE PART============================================================
     //Atualizar um contato (UPDATE)
     public Contato updateContact(Long id, Contato contatoAtualizado) {
-        Contato contatoExistente = buscarp(id);
+        Contato contatoExistente = buscarPorId(id);
 
         // Passo 1: Sanitizar os dados que chegaram
         sanitizarContato(contatoAtualizado);
 
         // Passo 2: Validar as regras de negócio para os novos dados
-        ValidRegrasNegocUpdate(contatoAtualizado, contatoExistente);
+        validarRegrasDeNegocioParaUpdate(contatoAtualizado, contatoExistente);
 
         // Atualiza os dados do objeto existente
         contatoExistente.setNome(contatoAtualizado.getNome());
         contatoExistente.setEmail(contatoAtualizado.getEmail());
         contatoExistente.setDataNascimento(contatoAtualizado.getDataNascimento());
 
+        //Lógica para atualizar as listas (Adicionadas)
+        contatoExistente.getTelefones().clear();
+        if (contatoAtualizado.getTelefones() != null) {
+            for (Telefone tel : contatoAtualizado.getTelefones()) {
+                tel.setContato(contatoExistente);
+                contatoExistente.getTelefones().add(tel);
+            }
+        }
+
+        contatoExistente.getEnderecos().clear();
+        if (contatoAtualizado.getEnderecos() != null) {
+            for (Endereco end : contatoAtualizado.getEnderecos()) {
+                end.setContato(contatoExistente);
+                contatoExistente.getEnderecos().add(end);
+            }
+        }
+
         return contatoRepository.save(contatoExistente);
     }
 
+    //========================================DELETE PART============================================================
     //Deletar um contato (DELETE)
     public void deletarContato(Long id) {
         Contato contatoParaDeletar = buscarPorId(id);
         contatoRepository.delete(contatoParaDeletar);
     }
+
 
 
 
@@ -80,6 +109,10 @@ public class ContatoService {
         }
     }
 
+
+
+    // -- Lógica validação -- //
+
     private void validarRegrasDeNegocioParaCriacao(Contato contato) {
         validarIdade(contato);
         validarEmailDuplicadoParaCriacao(contato);
@@ -89,9 +122,6 @@ public class ContatoService {
         validarIdade(contatoAtualizado);
         validarEmailDuplicadoParaUpdate(contatoAtualizado, contatoExistente);
     }
-
-
-    // -- Lógica validação -- //
 
     private void validarIdade(Contato contato) {
         if (contato.getDataNascimento() != null) {
@@ -103,13 +133,13 @@ public class ContatoService {
     }
 
     private void validarEmailDuplicadoParaCriacao(Contato contato) {
-        if (contatoRepository.existsByemail(contato.getEmail())) {
+        if (contatoRepository.existsByEmail(contato.getEmail())) {
             throw new IllegalArgumentException("Este e-mail já está em uso.");
         }
     }
 
     private void validarEmailDuplicadoParaUpdate(Contato contatoAtualizado, Contato contatoExistente) {
-        Optional<Contato> contatoEncontrado = contatoRepository.findByemail(contatoAtualizado.getEmail());
+        Optional<Contato> contatoEncontrado = contatoRepository.findByEmail(contatoAtualizado.getEmail());
 
         if (contatoEncontrado.isPresent() && !contatoEncontrado.get().getId().equals(contatoExistente.getId())) {
             throw new IllegalArgumentException("Este e-mail já está em uso por outro contato.");

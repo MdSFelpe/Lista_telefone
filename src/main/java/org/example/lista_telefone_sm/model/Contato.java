@@ -1,4 +1,4 @@
-package model;
+package org.example.lista_telefone_sm.model;
 
 
 import jakarta.persistence.*;
