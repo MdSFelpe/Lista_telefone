@@ -22,7 +22,7 @@ public class ContatoService {
     // ContatoRepository e "injetá-la" aqui para ser usado.
 
 
-    //========================================CREATE PART============================================================
+    //========================================  CREATE =================================================================
     //Criar um novo contato (CREATE)
     public Contato criarcontato(Contato contato)    {
         //Passo 1: Sanitizar os dados
@@ -35,10 +35,32 @@ public class ContatoService {
         return contatoRepository.save(contato);
     }
 
+    public Contato adicionarTelefone(Long contatoId, Telefone novoTelefone) {
+        Contato contato = buscarPorId(contatoId);
+        if (contato.getTelefones().isEmpty()) {
+            novoTelefone.setPrincipal(true); // Por padrão, o primeiro número cadastrado sempre vai vir como principal
+        }
+        novoTelefone.setContato(contato);
+        contato.getTelefones().add(novoTelefone);
+        return contatoRepository.save(contato);
+    }
 
-    //========================================READ PART============================================================
+
+    public Contato adicionarEndereco(Long contatoId, Endereco novoEndereco) {
+        Contato contato = buscarPorId(contatoId);
+        if (contato.getEnderecos().isEmpty()) {
+            novoEndereco.setPrincipal(true); // mesma lógica de principal do "adicionartelefone"
+        }
+        novoEndereco.setContato(contato);
+        contato.getEnderecos().add(novoEndereco);
+        return contatoRepository.save(contato);
+    }
+
+
+
+    //========================================  READ ===================================================================
     //Ler todos os contatos(READ)
-    public List<Contato> listarContatos() {
+    public List<Contato> listartodos() {
         return contatoRepository.findAll();
     }
 
@@ -55,9 +77,9 @@ public class ContatoService {
     }
 
 
-    //========================================UPDATE PART============================================================
+    //======================================  UPDATE  ==================================================================
     //Atualizar um contato (UPDATE)
-    public Contato updateContact(Long id, Contato contatoAtualizado) {
+    public Contato atualizarContatoCompleto(Long id, Contato contatoAtualizado) {
         Contato contatoExistente = buscarPorId(id);
 
         // Passo 1: Sanitizar os dados que chegaram
@@ -91,13 +113,36 @@ public class ContatoService {
         return contatoRepository.save(contatoExistente);
     }
 
-    //========================================DELETE PART============================================================
+    public Contato definirTelefonePrincipal(Long contatoId, Long telefoneId) {
+        Contato contato = buscarPorId(contatoId);
+        contato.getTelefones().forEach(tel -> tel.setPrincipal(tel.getId().equals(telefoneId)));
+        return contatoRepository.save(contato);
+    }
+
+    public Contato definirEnderecoPrincipal(Long contatoId, Long enderecoId) {
+        Contato contato = buscarPorId(contatoId);
+        contato.getEnderecos().forEach(end -> end.setPrincipal(end.getId().equals(enderecoId)));
+        return contatoRepository.save(contato);
+    }
+
+    //======================================  DELETE ===================================================================
     //Deletar um contato (DELETE)
     public void deletarContato(Long id) {
         Contato contatoParaDeletar = buscarPorId(id);
         contatoRepository.delete(contatoParaDeletar);
     }
 
+    public Contato removerTelefone(Long contatoId, Long telefoneId) {
+        Contato contato = buscarPorId(contatoId);
+        contato.getTelefones().removeIf(telefone -> telefone.getId().equals(telefoneId));
+        return contatoRepository.save(contato);
+    }
+
+    public Contato removerEndereco(Long contatoId, Long enderecoId) {
+        Contato contato = buscarPorId(contatoId);
+        contato.getEnderecos().removeIf(endereco -> endereco.getId().equals(enderecoId));
+        return contatoRepository.save(contato);
+    }
 
 
 
@@ -105,8 +150,35 @@ public class ContatoService {
 
     private void sanitizarContato(Contato contato) { //Usa como uma verificação de segurança para evitar erros..
         if (contato.getNome() != null) {                //..(NullPointerException) caso o nome não tenha sido informado.
-            contato.setNome(contato.getNome().trim().replaceAll("\\s+", " "));
+            String nomeLimpo = contato.getNome().trim().replaceAll("\\s+", " ");
+
+            String nomeFormatado = formatarNomeProprio(nomeLimpo);
+
+            contato.setNome(nomeFormatado);
         }
+    }
+
+
+    private String formatarNomeProprio(String nome) {
+        if (nome == null || nome.isEmpty()) {
+            return nome;
+        }
+
+        // Divide o nome em palavras
+        String[] palavras = nome.toLowerCase().split("\\s");
+        StringBuilder nomeFormatado = new StringBuilder();
+
+        for (String palavra : palavras) {
+            if (!palavra.isEmpty()) {
+                // Capitaliza a primeira letra e adiciona o resto da palavra
+                nomeFormatado.append(Character.toUpperCase(palavra.charAt(0)))
+                        .append(palavra.substring(1))
+                        .append(" ");
+            }
+        }
+
+        // Remove o último espaço em branco
+        return nomeFormatado.toString().trim();
     }
 
 

@@ -31,6 +31,10 @@ public class Endereco {
         @Column(nullable = false)
         private String numero;
 
+
+        @Column(nullable = false)
+        private boolean principal;
+
         @NotNull(message = "O tipo de endereço não pode ser nulo")
         @Column(nullable = false)
         @Enumerated(EnumType.STRING) // Diz ao JPA para salvar o NOME do enum ("RESIDENCIAL") no banco, e não o número (0).

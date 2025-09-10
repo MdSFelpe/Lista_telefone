@@ -31,6 +31,11 @@ public class Contato {
     private String email;
 
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusContato status;
+
+
     @NotNull(message = "A data de nascimento não pode ser nula.")
     private LocalDate dataNascimento;
 

@@ -28,7 +28,7 @@ public class ContatoController {
     // Endpoint para LER (listar) todos os contatos (HTTP GET)
     @GetMapping
     public ResponseEntity<List<Contato>> listarTodos() {
-        List<Contato> contatos = contatoService.listarContatos();
+        List<Contato> contatos = contatoService.listartodos();
         return ResponseEntity.ok(contatos); // Retorna a lista e o status 200 OK.
     }
 

@@ -20,6 +20,9 @@ public class Telefone {
     @Column(nullable = false)
     private String numero;
 
+    @Column(nullable = false)
+    private boolean principal;
+
     @NotNull(message = "Por favor, insira o tipo do número que foi informado.")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
