@@ -1,7 +1,10 @@
 package org.example.lista_telefone_sm.repository;
 
 import org.example.lista_telefone_sm.model.Contato;
+import org.example.lista_telefone_sm.model.StatusContato;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -9,31 +12,28 @@ import java.util.Optional;
 
 @Repository
 public interface ContatoRepository extends JpaRepository<Contato, Long> {
-    // A mágica acontece aqui!
-    // Todos os métodos de CRUD básicos (save, findById, findAll, deleteById, etc.)
-    // já estão disponíveis automaticamente por causa do JpaRepository.
 
-
-    /**
-     * Verifica se um contato com o e-mail fornecido já existe no banco de dados.
-     * O Spring Data JPA cria a consulta SQL automaticamente com base no nome do método.
-     * @param email O e-mail a ser verificado.
-     * @return true se o e-mail já existir, false caso contrário.
-     */
     boolean existsByEmail(String email);
 
-
-    /**
-     * Busca um contato pelo seu endereço de e-mail.
-     * Retorna um Optional, que é uma forma segura de lidar com a possibilidade
-     * de o contato não ser encontrado (evitando NullPointerException).
-     * @param email O e-mail do contato a ser buscado.
-     * @return um Optional contendo o Contato se encontrado, ou um Optional vazio.
-     */
     Optional<Contato> findByEmail(String email);
 
+    @Query("SELECT DISTINCT c FROM Contato c LEFT JOIN FETCH c.telefones LEFT JOIN FETCH c.enderecos LEFT JOIN FETCH c.grupos")
+    @Override
+    List<Contato> findAll();
 
-    List<Contato> findByNomeContainingIgnoreCaseOrEmailContainingIgnoreCase(String nome, String email);
+    @Query("SELECT DISTINCT c FROM Contato c LEFT JOIN FETCH c.telefones LEFT JOIN FETCH c.enderecos LEFT JOIN FETCH c.grupos WHERE c.id = :id")
+    @Override
+    Optional<Contato> findById(@Param("id") Long id);
 
+    @Query("SELECT DISTINCT c FROM Contato c LEFT JOIN FETCH c.telefones LEFT JOIN FETCH c.enderecos LEFT JOIN FETCH c.grupos WHERE c.status = :status")
+    List<Contato> findByStatus(@Param("status") StatusContato status);
 
+    @Query("SELECT DISTINCT c FROM Contato c LEFT JOIN FETCH c.telefones LEFT JOIN FETCH c.enderecos LEFT JOIN FETCH c.grupos WHERE c.grupos IS EMPTY")
+    List<Contato> findByGruposIsEmpty();
+
+    @Query("SELECT DISTINCT c FROM Contato c LEFT JOIN FETCH c.telefones LEFT JOIN FETCH c.enderecos LEFT JOIN FETCH c.grupos g WHERE g.id = :grupoId")
+    List<Contato> findByGrupos_Id(@Param("grupoId") Long grupoId);
+
+    @Query("SELECT DISTINCT c FROM Contato c LEFT JOIN FETCH c.telefones LEFT JOIN FETCH c.enderecos LEFT JOIN FETCH c.grupos WHERE lower(c.nome) LIKE lower(concat('%', :termo, '%')) OR lower(c.email) LIKE lower(concat('%', :termo, '%'))")
+    List<Contato> findByNomeContainingIgnoreCaseOrEmailContainingIgnoreCase(@Param("termo") String termo, @Param("termo2") String termo2);
 }

@@ -42,7 +42,7 @@ public class ContatoController {
     // Endpoint para ATUALIZAR um contato existente (HTTP PUT)
     @PutMapping("/{id}")
     public ResponseEntity<Contato> updateContact(@PathVariable Long id, @Valid @RequestBody Contato contatoAtualizado) {
-        Contato contato = contatoService.updateContact(id, contatoAtualizado);
+        Contato contato = contatoService.atualizarContatoCompleto(id, contatoAtualizado);
         return ResponseEntity.ok(contato);
     }
 

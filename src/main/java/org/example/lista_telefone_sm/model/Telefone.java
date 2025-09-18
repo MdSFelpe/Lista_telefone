@@ -5,10 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "telefone")
 @Data
+@EqualsAndHashCode(exclude = "contato")
+@ToString(exclude = "contato")
 public class Telefone {
 
     @Id

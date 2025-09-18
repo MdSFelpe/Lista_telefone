@@ -4,14 +4,19 @@ package org.example.lista_telefone_sm.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-@Entity // Anotação que informa ao JPA que esta classe corresponde a uma tabela no banco.
-@Table(name = "contato") // Especifica o nome da tabela
-@Data // Anotação do Lombok para gerar Getters, Setters, toString, etc...
-
+@Entity
+@Table(name = "contato")
+@Data
+@EqualsAndHashCode(exclude = {"telefones", "enderecos", "grupos"})
+@ToString(exclude = {"telefones", "enderecos", "grupos"})
 public class Contato {
 
     @Id
@@ -33,7 +38,7 @@ public class Contato {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusContato status;
+    private StatusContato status = StatusContato.ATIVO;
 
 
     @NotNull(message = "A data de nascimento não pode ser nula.")
@@ -41,8 +46,16 @@ public class Contato {
 
     // Relacionamento: Um Contato pode ter muitos Telefones.
     @OneToMany(mappedBy = "contato", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Telefone> telefones;
+    private Set<Telefone> telefones;
 
     @OneToMany(mappedBy = "contato", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Endereco> enderecos;
+    private Set<Endereco> enderecos;
+
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(
+            name = "contato_grupo",
+            joinColumns = @JoinColumn(name = "contato_id"),
+            inverseJoinColumns = @JoinColumn(name = "grupo_id")
+    )
+    private Set<Grupo> grupos = new HashSet<>();
 }
